@@ -218,4 +218,284 @@ Index:  0   1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16  17  
 Value:  4   8   8   11  13  13  14  19  23  25  29  33  35  35  38  39  39  44  47  51  56  59  60  63  68  70  75  78  80  85  86
 ```
 
-If we were searching for the number `11`, we would start at the middle index (the `length` / 2, which is `31 / 2 = 15` (remember, integer division truncates the decimal)). Looking at the value at index `15`, we find the number `39`. Since `11` is less than `39`, we know that our value must be in the left half of the data!
+If we were searching for the number `11`, we would start at the middle index (the average of the starting and ending indices, which is `(30 + 0) / 2 = 15`). Looking at the value at index `15`, we find the number `39`. Since `11` is less than `39`, we know that our value must be in the left half of the data!
+
+At this point, we do not care about the right half of the data, and can just zoom in and look at the left half:
+
+```
+Index:  0   1   2   3   4   5   6   7   8   9   10  11  12  13  14
+Value:  4   8   8   11  13  13  14  19  23  25  29  33  35  35  38
+```
+
+Notice that since our value was strictly less than `39`, we can ignore the value at index `15` as well, leaving us with just `15` values left. This is the power of binary search: with just a single check, we eliminated half of the data.
+
+This is the moment where binary search is more apparently a recursive algorithm. We can do the exact same procedure as before on this new smaller set of data to help us solve our problem. Our middle index now is `7` (the average of the starting and ending indices, which is `(14 + 0) / 2 = 7`), and the value there is `19`. Since `11` is less than `19`, we know that our value is the left half of this data (which could be considered one quarter of the original data).
+
+At this point, we do not care about the right half of the data, and can just zoom in and look at the left half:
+
+```
+Index:  0   1   2   3   4   5   6
+Value:  4   8   8   11  13  13  14
+```
+
+We repeat our procedure again. Our middle index is now `3` (the average of the starting and ending indices, which is `(6 + 0) / 2 = 3`), and the value there is `11`. `11` is equal to this middle index, so we would return the index `3` as the location of our match. This would return back up the two previous steps to communicate our final answer!
+
+Here is what an implementation of binary search looks like:
+
+```java
+public static int binarySearch(int[] nums, int startIndex, int endIndex, int target) {
+    if (startIndex <= endIndex) {
+        int halfwayIndex = (endIndex + startIndex) / 2;
+        if (target < nums[halfwayIndex]) {
+            return binarySearch(nums, startIndex, halfwayIndex - 1, target);
+        } else if (target > nums[halfwayIndex]) {
+            return binarySearch(nums, halfwayIndex + 1, endIndex, target);
+        }
+        return halfwayIndex;
+    }
+    return -1;
+}
+```
+
+Some details about this algorithm:
+- We check if `startIndex <= endIndex` because of the `+ 1` and `- 1` nature of recursive calls. If the value is not found, eventually `startIndex` and `endIndex` will be the same, resulting in a single value to check. If that fails, then it will call with either `startIndex` increased by `1` or `endIndex` decreased by `1`, resulting in `startIndex` being greater than `endIndex`, and at that point we know that we did not find the `target` value, and should return `-1`.
+- If our `target` value is below the middle value (the value of `nums` at index `halfwayIndex`), then we need to do the same algorithm on the array with a modified ending location (since we eliminate the right half where `endIndex` was). Same thing if we eliminate the left side, where we modify the starting location.
+- If the `target` value was not less than or greater than the current middle value, then it must be equal to it, so we can return that index as our final answer. This will get passed up the chain to answer the question.
+
+Here are the steps that the computer goes through to produce the output for the list of numbers above searching for the value `60`:
+
+```
+binarySearch(nums, 0, 30, 60)
+0 is less than or equal to 30 so we can continue
+halfwayIndex is calculated as (30 + 0) / 2 = 30 / 2 = 15
+60 is not less than the value in nums at index 15 (39)
+60 is greater than the value in nums at index 15 (39)
+call binarySearch(nums, 15 + 1, 30, 60) which is binarySearch(nums, 16, 30, 60)
+
+    binarySearch(nums, 16, 30, 60)
+    16 is less than or equal to 30 so we can continue
+    halfwayIndex is calculated as (16 + 30) / 2 = 46 / 2 = 23
+    60 is less than the value in nums at index 7 (63)
+    call binarySearch(nums, 16, 23 - 1, 60) which is binarySearch(nums, 16, 22, 60)
+
+        binarySearch(nums, 16, 22, 60)
+        16 is less than or equal to 22 so we can continue
+        halfwayIndex is calculated as (16 + 22) / 2 = 38 / 2 = 19
+        60 is not less than the value in nums at index 19 (51)
+        60 is greater than the value in nums at index 19 (51)
+        call binarySearch(nums, 19 + 1, 22, 60) which is binarySearch(nums, 20, 22, 60)
+
+            binarySearch(nums, 20, 22, 60)
+            20 is less than or equal to 22 so we can continue
+            halfwayIndex is calculated as (20 + 22) / 2 = 42 / 2 = 21
+            60 is not less than the value in nums at index 21 (59)
+            60 is greater than the value in nums at index 21 (59)
+            call binarySearch(nums, 20 + 1, 22, 60) which is binarySearch(nums, 21, 22, 60)
+
+                binarySearch(nums, 21, 22, 60)
+                21 is less than or equal to 22 so we can continue
+                halfwayIndex is calculated as (21 + 22) / 2 = 43 / 2 = 21 (integer division)
+                60 is not less than the value in nums at index 21 (59)
+                60 is greater than the value in nums at index 21 (59)
+                call binarySearch(nums, 21 + 1, 22, 60) which is binarySearch(nums, 22, 22, 60)
+
+                    binarySearch(nums, 22, 22, 60)
+                    22 is less than or equal to 22 so we can continue
+                    halfwayIndex is calculated as (22 + 22) / 2 = 44 / 2 = 22
+                    60 is not less than the value in nums at index 22 (60)
+                    60 is not greater than the value in nums at index 22 (60)
+                    then 60 must be equal to the value in nums at index 22 (60)
+                    return 22
+
+                return 22
+
+            return 22
+
+        return 22
+
+    return 22
+
+return 22
+```
+
+Binary search is a powerful tool because it often works better than other searching algorithms (like linear search).
+
+Advanced Note: The maximum iterations it takes for binary search to find is equal to the log base `2` of the size of the dataset (rounded up) plus `1`. This data set had `31` values, and log base `2` of `31` rounded up is `5`, and plus `1` is `6`. You can see above that we had a worst-case scenario value in the example, since it ultimately called the method `6` times. Our example earlier was a better scenario, where we only called it `3` times.
+
+---
+
+## Merge Sort
+
+Another tool that is made easier by recursion is **merge sort**.
+
+This algorithm is built on the basis of merging two sorted lists together into one larger sorted list. 
+This portion of the concept is not recursive, and we can make a `merge` method that combines two sorted arrays into one larger sorted array.
+
+Merging already sorted lists makes sense, but how do lists get sorted to begin with? That's the power of merge sort. By splitting the list up into two pieces, and then splitting it up into two pieces again, and again, and again, we get to the point of having individual values. Technically, the `merge` method above can merge two arrays that have one value each, and then can merge two arrays with two values each and so on.
+
+Here is what this would look like happening to a set of values:
+
+```
+Original:       3   2   7   6   5   3
+
+Split in Half:  3   2   7       6   5   3
+
+Split in Half:  3   2       7       6   5       3
+
+Split in Half:  3       2       7       6       5       3
+
+Merge Halfs:    2   3       7       5   6       3
+
+Merge Halfs:    2   3   7       3   5   6
+
+Merge Halfs:    2   3   3   5   6   7
+```
+
+Notice that we keep splitting until we have just individual values, then start merging into the groups they were split up from. We repeat the merging until we are back to a full and finished list.
+
+The algorithm to merge two sorted lists together is the non-recursive portion, and just requires some logic as to what value goes next. Here is an example from the `NotesMerge1.java` file:
+
+```java
+public static int[] merge(int[] a, int[] b) {
+    int[] result = new int[a.length + b.length];
+    int resultIndex = 0;
+    int aIndex = 0;
+    int bIndex = 0;
+    while (resultIndex < result.length) {
+        if (aIndex == a.length) {
+            result[resultIndex] = b[bIndex];
+            bIndex++;
+        } else if (bIndex == b.length) {
+            result[resultIndex] = a[aIndex];
+            aIndex++;
+        } else if (a[aIndex] <= b[bIndex]) {
+            result[resultIndex] = a[aIndex];
+            aIndex++;
+        } else {
+            result[resultIndex] = b[bIndex];
+            bIndex++;
+        }
+        resultIndex++;
+    }
+    return result;
+}
+```
+
+Essentially, this method just goes through a larger result array and keeps track of the value it is looking at in the two parameter arrays `a` and `b`. If either of the arrays had been used up completely, just use the other. Otherwise, compare the current values and determine which one should be used to maintain a sorted list.
+
+This was designed with a couple of specific goals in mind:
+- It works on parameter arrays of any size.
+- It works on parameter arrays with sizes different from each other.
+- It depends on the two parameter arrays being sorted (which is the whole premise of this algorithm).
+
+Here is the method that actually performs the merge sort by calling itself and using the `merge` method above when it needs to combine the sorted parts.
+
+```java
+public static int[] mergeSort(int[] arr, int from, int to) {
+    if (from < to) {
+        int middle = (from + to) / 2;
+        int[] lower = mergeSort(arr, from, middle);
+        int[] upper = mergeSort(arr, middle + 1, to);
+        return merge(lower, upper);
+    }
+    return new int[] {arr[from]};
+}
+```
+
+While we haven't seen it before, this method calls itself twice recursively. Once to do the lower half and once to do the upper half.
+
+If `from` is not less than `to`, it means that `from` must be equal to `to` (due to us only adding one each time, it can't be greater than). In that case, return just that single value (since a single value is sorted with itself).
+
+Here is the sample list from above:
+
+```
+Index:  0   1   2   3   4   5
+Value:  3   2   7   6   5   3
+```
+
+Here are the steps that the computer goes through to process `mergeSort(arr, 0, 5)`:
+
+```
+mergeSort(arr, 0, 5)
+0 is less than 5 so we can continue
+middle is calculated as (0 + 5) / 2 = 5 / 2 = 2 (integer division)
+call mergeSort(arr, 0, 2)
+
+    mergeSort(arr, 0, 2)
+    0 is less than 2 so we can continue
+    middle is calculated as (0 + 2) / 2 = 2 / 2 = 1
+    call mergeSort(arr, 0, 1)
+    
+        mergeSort(arr, 0, 1)
+        0 is less than 1 so we can continue
+        middle is calculated as (0 + 1) / 2 = 1 / 2 = 0 (integer division)
+        call mergeSort(arr, 0, 0)
+
+            mergeSort(arr, 0, 0)
+            0 is not less than 0
+            return the array {3}
+        
+        set lower to the array {3}
+        call mergeSort(arr, 1, 1)
+
+            mergeSort(arr, 1, 1)
+            1 is not less than 1
+            return the array {2}
+
+        set upper to the array {2}
+        merge the two arrays to make {2, 3}
+        return the array {2, 3}
+    
+    set lower to the array {2, 3}
+    call mergeSort(arr, 2, 2)
+
+        mergeSort(arr, 2, 2)
+        2 is not less than 2
+        return the array {7}
+    
+    set upper to the array {7}
+    merge the two arrays to make {2, 3, 7}
+    return the array {2, 3, 7}
+
+set lower to the array {2, 3, 7}
+call mergeSort(arr, 3, 5)
+
+    mergeSort(arr, 3, 5)
+    3 is less than 5 so we can continue
+    middle is calculated as (3 + 5) / 2 = 8 / 2 = 4
+    call mergeSort(arr, 3, 4)
+
+        mergeSort(arr, 3, 4)
+        3 is less than 4 so we can continue
+        middle is calculated as (3 + 4) / 2 = 7 / 2 = 3 (integer division)
+        call mergeSort(arr, 3, 3)
+
+            mergeSort(arr, 3, 3)
+            3 is not less than 3
+            return the array {6}
+
+        set lower to the array {6}
+        call mergeSort(arr, 4, 4)
+
+            mergeSort(arr, 4, 4)
+            4 is not less than 4
+            return the array {5}
+
+        set upper to the array {5}
+        merge the two arrays to make {5, 6}
+        return the array {5, 6}
+
+    set lower to the array {5, 6}
+    call mergeSort(arr, 5, 5)
+
+        mergeSort(arr, 5, 5)
+        5 is not less than 5
+        return the array {3}
+
+    set upper to the array {3}
+    merge the two arrays to make {3, 5, 6}
+
+set upper to the array {3, 5, 6}
+merge the two arrays to make {2, 3, 3, 5, 6, 7}
+return the array {2, 3, 3, 5, 6, 7}
+```
