@@ -320,6 +320,8 @@ return 22
 
 Binary search is a powerful tool because it often works better than other searching algorithms (like linear search).
 
+[Here](https://www.cs.usfca.edu/~galles/visualization/Search.html) is a great tool that visualizes a binary search on smaller and larger datasets to get a better idea of how they work. Play around with it by entering the search target in the top left, and turning down the animation speed slider at the bottom.
+
 Advanced Note: The maximum iterations it takes for binary search to find is equal to the log base `2` of the size of the dataset (rounded up) plus `1`. This data set had `31` values, and log base `2` of `31` rounded up is `5`, and plus `1` is `6`. You can see above that we had a worst-case scenario value in the example, since it ultimately called the method `6` times. Our example earlier was a better scenario, where we only called it `3` times.
 
 ---
@@ -499,3 +501,5 @@ set upper to the array {3, 5, 6}
 merge the two arrays to make {2, 3, 3, 5, 6, 7}
 return the array {2, 3, 3, 5, 6, 7}
 ```
+
+[Here](https://opendsa-server.cs.vt.edu/embed/mergesortAV) is a step-by-step visualization that will walk you through a merge sort on a set of up to 12 values. [Here](https://antoniosarosi.github.io/Merge-Sort-Visualization/) is a visualization of merge sort that runs much faster on a smaller set. Play around with these to get a better sense of what the algorithm does!
